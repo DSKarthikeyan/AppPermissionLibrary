@@ -2,8 +2,11 @@ package com.dsk.permissionlibrary;
 
 import android.Manifest;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -13,6 +16,8 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,16 +34,19 @@ public class GetPermission extends AppCompatActivity {
             Manifest.permission.SEND_SMS,
     };
     public static final int RequestPermissionCode = 7;
+    private View mLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mLayout = findViewById(R.id.main_layout);
+
 
         if (checkAppPermission(requiredAppPermissions)) {
 
         } else {
-
+            checkAppPermission(requiredAppPermissions);
         }
     }
 
@@ -60,17 +68,27 @@ public class GetPermission extends AppCompatActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode,String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         Log.d("DSK ", "Permission callback called-------");
         switch (requestCode) {
             case RequestPermissionCode: {
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {  // permissions granted.
-                   // Now you call here what ever you want :)
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // permissions granted.
+                    // Now you call here what ever you want :)
                 } else {
                     String perStr = "";
-                    for (String per : permissions) {
-                        perStr += "\n" + per;
-                    }   // permissions list of don't granted permission
+                    String[] requestList = new String[permissions.length];
+                    for (int i=0;i<permissions.length;i++) {
+                        perStr += "\n" + permissions[i];
+                        String tet = permissions[i];
+                        requestList[i]=tet;
+                        Log.d("DSK ", "Permission Denied list " + permissions[i]);
+                    }
+                    // permissions list of don't granted permission
+//                    openSettings();
+                    Snackbar.make(mLayout,  "Permission Denied",
+                            Snackbar.LENGTH_SHORT)
+                            .show();
                 }
                 return;
             }
@@ -78,4 +96,11 @@ public class GetPermission extends AppCompatActivity {
 
     }
 
+    private void openSettings() {
+        Intent intent = new Intent();
+        intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+        Uri uri = Uri.fromParts("package", getPackageName(), null);
+        intent.setData(uri);
+        startActivity(intent);
+    }
 }
